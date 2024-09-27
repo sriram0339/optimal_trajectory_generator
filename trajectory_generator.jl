@@ -54,14 +54,14 @@ function generate_random_weights(n::Int)
     return weights
 end
 
-function generate_trajectory(sys::DynamicalSystem, workspace_info::Workspace, ctrl_dt::Float64, ctrl_limits::Vector{Tuple{Float64, Float64}}, n_steps::Int, num_trajectories::Int; use_simulated_annealing::Bool=false)
+function generate_trajectory(sys::DynamicalSystem, workspace_info::Workspace, ctrl_dt::Float64, ctrl_limits::Vector{Tuple{Float64, Float64}}, n_steps::Int, num_trajectories::Int; use_simulated_annealing::Bool=false, start_index::Int = 0)
     filename_weights = "trajectory_weights.csv"
     filename_costs = "trajectory_costs.csv"
     open(filename_weights, "w") do file_weights
         open(filename_costs, "w") do file_costs
             println(file_costs, "id, avg_obstacle_distance, max_obstacle_distance , avg_waypoints_dev, max_waypoints_dev, avg_velocity_dev, avg_control_effort, dev_from_tgt_pos, backsliding_cost")
             println(file_weights, "id, avg_obstacle_distance, max_obstacle_distance , avg_waypoints_dev, max_waypoints_dev, avg_velocity_dev, avg_control_effort, dev_from_tgt_pos, backsliding_cost")
-            for i in 1:num_trajectories
+            for i in start_index:num_trajectories+start_index-1
                 println("Generating trajectory $i")
                 weights = generate_random_weights(8)
                 
@@ -95,13 +95,30 @@ function generate_trajectory(sys::DynamicalSystem, workspace_info::Workspace, ct
     end
 end
 
-function main()
-    # prase command line arguments 
-    ap = ArgParse.ArgumentParser()
-    ArgParse.add_argument(ap, "--use_simulated_annealing"; action="store_true", help="Use simulated annealing to optimize the trajectory")
-    ArgParse.add_argument(ap, "--num_trajectories"; type=Int, default=10, help="Number of trajectories to generate")
-    args = ArgParse.parse_args(ap)  
+function parse_commandline()
+    s = ArgParseSettings()
+    @add_arg_table s begin
+        "--num_trajectories"
+            help = "Number of Trajectories"
+            arg_type = Int
+            default = 10
+        "--start_index"
+            help = "Starting Index "
+            arg_type = Int
+            default = 1
+        "--use_simulated_annealing"
+            help = "Use Simulated Annealing"
+            arg_type = Bool
+            default = false 
+    end
+    return parse_args(s)
+end
 
+
+function main()
+    # parse command line arguments 
+    @show args = parse_commandline()
+    
 
     dyn_sys = DynamicalSystem(vehicle_model, [2.0], [0., 0. , 0.35 + 0.1*rand(), 5*rand()])
     obstacle_locations = [
@@ -118,7 +135,7 @@ function main()
     # steering rate limit is 0.4 rad/s
     # number of steps is 40
     # number of trajectories is 10
-    generate_trajectory(dyn_sys, winfo, 0.25, [(-1.0, 1.0), (-0.4, 0.4)], 40, args.num_trajectories, use_simulated_annealing=args.use_simulated_annealing)
+    generate_trajectory(dyn_sys, winfo, 0.25, [(-1.0, 1.0), (-0.4, 0.4)], 40, args["num_trajectories"], use_simulated_annealing=args["use_simulated_annealing"], start_index=args["start_index"])
 end
 
 main()
