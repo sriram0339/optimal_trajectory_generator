@@ -108,8 +108,7 @@ function parse_commandline()
             default = 1
         "--use_simulated_annealing"
             help = "Use Simulated Annealing"
-            arg_type = Bool
-            default = false 
+            action = :store_true
     end
     return parse_args(s)
 end
