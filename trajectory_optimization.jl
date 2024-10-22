@@ -2,13 +2,6 @@ include("./generate_trajectory.jl")
 include("./trajectory_evaluation.jl")
 using LinearAlgebra
 using Random
-#using OptimizationMetaheuristics
-#using OptimizationOptimJL
-#using OptimizationCMAEvolutionStrategy
-#using Optim 
-#using OptimizationBBO
-
-#using OptimizationPRIMA
 using BlackBoxOptim
 using Optimization
 using OptimizationOptimJL
